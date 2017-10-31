@@ -7,6 +7,16 @@ class ec2Instance ():
     Region = ""
     State = ""
 
+    def printme(self):
+        print self.Region + " : "
+        print self.Name + " <<instance ID>> " + self.ID+ " <<with the state>> " + self.State
+
+    def findByName(self, name):
+        if name == self.Name:
+            return True
+        return False
+
+#########################
 
 def get_all_running_instances():
     ec2 = boto3.client('ec2')
@@ -40,18 +50,6 @@ def get_running_instances(region):
 
     return instances
 
-def get_instance_old(region):
-    instances=[]
-    ec2 = boto3.client('ec2', region_name=region)
-    response = ec2.describe_instances()
-    for r in response['Reservations']:
-        for i in r['Instances']:
-            resLine=""
-            for t in i["Tags"]:
-                resLine = t["Value"]+ " <<instance ID>> " + i["InstanceId"]+ " <<with the state>> " + i["State"]["Name"]
-            instances.append(resLine)
-
-    return instances
 
 def get_instance(region):
     inst = ec2Instance()
@@ -68,19 +66,19 @@ def get_instance(region):
     return inst
 
 
-
 def get_all_instances():
+    instances = []
     ec2 = boto3.client('ec2')
     regions = ec2.describe_regions()
     for r in regions['Regions']:
         inst=get_instance(r["RegionName"])
         if len(inst.Name)>0:
-            #print r["RegionName"]+" : "
-            print inst.Region + " : "
-            #for a in inst:
-            #    print(a)
-            print inst.Name + " <<instance ID>> " + inst.ID+ " <<with the state>> " + inst.State
+            instances.append(inst)
+            inst.printme()
+    return instances
 
-#inst = get_running_instances("eu-west-1")
-#get_all_running_instances()
-get_all_instances()
+instances = get_all_instances()
+
+for i in instances:
+    if i.findByName("DenverXLarge"):
+        print i.ID
