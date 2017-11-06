@@ -143,7 +143,7 @@ def main():
     if not args.action and not args.name:
         for m in machines.instances:
             m.printme()
-            return
+        return
 
     #If no action print info about instance
     if not args.action and args.name:
