@@ -24,12 +24,11 @@ for clusters in response['clusters']:
 
 
 
-ec2 = boto3.client('ec2', region_name='us-east-1')
+ec2 = boto3.client('ec2')  #, region_name='us-east-1')
 ecs_im = ECSImages.ecsImages('us-east-1')
 print "**************ECS Images in us-east-1****************"
 print "Image name: "+ecs_im.getName()
 print "ImageID: " + ecs_im.getId()
-
 
 
 autoscale = boto3.client('autoscaling',  region_name='us-east-1')

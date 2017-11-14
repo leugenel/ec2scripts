@@ -1,7 +1,7 @@
 import boto3
 
 class ecsImages ():
-    #Not full list , add from the following link if required
+    #Not a full list , add from the following link if required
     #http://docs.aws.amazon.com/AmazonECS/latest/developerguide/ecs-optimized_AMI.html
     Optimized = {
         "us-east-2":"ami-b0527dd5",
@@ -15,14 +15,19 @@ class ecsImages ():
     __image = ""
     __region = ""
 
-    def __init__(self, region):
+    def __init__(self, region='us-east-1'):
+        try:
+            self.__image=self.Optimized[region]
+        except KeyError:
+            print "Exception: The region you provided is not exists"
+            raise ValueError
         self.__region=region
-        self.__image=self.Optimized[region]
 
-    def getImage(self, region):
-        return self.Optimized[region]
 
-    def describe(self):
+
+    def __describe(self):
+        if self.__region == "":
+            return
         ec2 = boto3.client('ec2', self.__region)
         return ec2.describe_images(
             Filters = [ {
@@ -31,8 +36,16 @@ class ecsImages ():
             }],
         )
 
+    def getImage(self):
+        return self.__image
+
+    def getRegion(self):
+        return self.__region
+
     def getName(self):
-        resp = self.describe()
+        if self.__region == "":
+            return
+        resp = self.__describe()
         name=""
         for images in resp['Images']:
             name = images['Name']
