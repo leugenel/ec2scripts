@@ -1,8 +1,5 @@
 
 import boto3
-import time
-
-######################### ec2Instance class #########################
 
 class ec2Instance ():
     """EC2 Instance, allows start, stop the instance"""
@@ -59,10 +56,3 @@ class ec2Instance ():
                         self.ID = i["InstanceId"]
                         self.State = i["State"]["Name"]
                         self.PublicDns = i['PublicDnsName']
-
-
-
-######################### usage #########################
-
-
-

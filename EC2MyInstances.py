@@ -1,5 +1,7 @@
 import boto3
+import time
 import EC2Instance
+
 
 class ec2MyInstances ():
     """Stub for the instance actions. Deal with the array of instances"""
@@ -41,26 +43,47 @@ class ec2MyInstances ():
             self.get_region_instances(r["RegionName"])
 
 
-    def start(self, name):
+    def start(self, instanceName):
         """Start the instance by provided instance name. Finding it in the array before"""
-        res = []
-        for insti in self.instances:
-            res = insti.start(name)
-            if len(res):
-                break
-        return res
+        indx = self.getIndex(instanceName)
+        if indx<0:
+            raise ValueError("No instances with name "+instanceName)
+        self.instances[indx].start(self.instances[indx].Name)
+        self.verifyStateChange("running", instanceName)
+        self.instances[indx].printme()
 
-    def stop(self, name):
+    def stop(self, instanceName):
         """Stop the instance by provided instance name. Finding it in the array before"""
-        res = []
-        for insti in self.instances:
-            res = insti.stop(name)
-            if len(res):
-                break
-        return res
+        indx = self.getIndex(instanceName)
+        if indx<0:
+            raise ValueError("No instances with name "+instanceName)
+        self.instances[indx].stop(self.instances[indx].Name)
+        self.verifyStateChange("stopped", instanceName)
+        self.instances[indx].printme()
 
     def getIndex(self, name):
         for indx,val in enumerate(self.instances):
             if val.Name == name:
                 return indx
         return -1
+
+    def printall(self):
+        for m in self.instances:
+            self.printone(m.Name)
+
+    def printone(self, instance):
+        indx = self.getIndex(instance)
+        if indx<0:
+            raise ValueError("No instances with name "+instance)
+        self.instances[indx].printme()
+
+    def verifyStateChange(self,  afterState, instance):
+        indx = self.getIndex(instance)
+        if indx <= 0:
+            raise ValueError("No instances with name "+instance)
+        for i in range(1,15):
+            self.instances[indx].refresh()
+            if self.instances[indx].State == afterState:
+                break
+            time.sleep(4)
+

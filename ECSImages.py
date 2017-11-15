@@ -19,8 +19,7 @@ class ecsImages ():
         try:
             self.__image=self.Optimized[region]
         except KeyError:
-            print "Exception: The region you provided is not exists"
-            raise ValueError
+            raise ValueError("The region you provided is not exists")
         self.__region=region
 
 
