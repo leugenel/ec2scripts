@@ -1,5 +1,6 @@
 import boto3
 import ECSImages
+import LaunchConf
 
 cluster_name = 'eugene-ecs-selperf'
 ecs_client = boto3.client(
@@ -22,8 +23,6 @@ for clusters in response['clusters']:
     print "Active Services Count: "+ str(clusters['activeServicesCount'])
 
 
-
-
 ec2 = boto3.client('ec2')  #, region_name='us-east-1')
 ecs_im = ECSImages.ecsImages('us-east-1')
 print "**************ECS Images in us-east-1****************"
@@ -39,27 +38,13 @@ if len(response['AutoScalingGroups'])==0:
 else:
     print response
 
-response = autoscale.describe_launch_configurations()
-if len(response['LaunchConfigurations'])!=0:
-    lc_ImageId = ''
-    for lc in response['LaunchConfigurations']:
-        print "**************LaunchConfigurations****************"
-        print "Launch Configuration Name: "+lc['LaunchConfigurationName']
-        print "Instance type: "+lc["InstanceType"]
-        lc_ImageId = lc['ImageId']
-        print "ImageId: "+lc_ImageId
-    print "Describing Image from Launch Configuration:"
-    response=ec2.describe_images(
-        Filters = [ {
-            'Name': 'image-id',
-            'Values': [lc_ImageId],
-        }],
-    )
-    for images in response['Images']:
-        print "Image "+lc_ImageId+ " has name: " + images['Name']
+launchConf = LaunchConf.LaunchConfig('us-east-1')
+launchConf.printall()
+launchConf.create('eugene_launch_config_create')
+launchConf.printall()
+launchConf.delete('eugene_launch_config_create')
+launchConf.printall()
 
-
-#create launch configuration
 
 
 #    print "AutoScalingGroups are empty"
