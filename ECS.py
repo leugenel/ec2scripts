@@ -1,6 +1,7 @@
 import boto3
 import ECSImages
 import LaunchConf
+import EC2VPC
 
 cluster_name = 'eugene-ecs-selperf'
 ecs_client = boto3.client(
@@ -38,13 +39,32 @@ if len(response['AutoScalingGroups'])==0:
 else:
     print response
 
-launchConf = LaunchConf.LaunchConfig('us-east-1')
-launchConf.printall()
-launchConf.create('eugene_launch_config_create')
-launchConf.printall()
-launchConf.delete('eugene_launch_config_create')
-launchConf.printall()
+# launchConf = LaunchConf.LaunchConfig('us-east-1')
+# launchConf.printall()
+# launchConf.create('eugene_launch_config_create')
+# launchConf.printall()
+# launchConf.delete('eugene_launch_config_create')
+# launchConf.printall()
 
+
+
+#subnet = EC2VPC.VPC('vpc-ff34d39a')
+# while not subnet.isLast():
+#     print subnet.getNext()
+
+
+#
+# response = vpc.describe_attribute(
+#     Attribute='enableDnsSupport',
+# )
+
+response = autoscale.create_auto_scaling_group(
+    AutoScalingGroupName='eugene-auto-scaling',
+    LaunchConfigurationName='eugene-selperf',
+    MaxSize=1,
+    MinSize=0,
+    VPCZoneIdentifier=EC2VPC.VPC('vpc-ff34d39a').getFirst()
+)
 
 
 #    print "AutoScalingGroups are empty"
