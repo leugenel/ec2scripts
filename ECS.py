@@ -2,6 +2,7 @@ import boto3
 import ECSImages
 import LaunchConf
 import EC2VPC
+import AutoScaleGroup
 
 cluster_name = 'eugene-ecs-selperf'
 ecs_client = boto3.client(
@@ -30,18 +31,27 @@ print "**************ECS Images in us-east-1****************"
 print "Image name: "+ecs_im.getName()
 print "ImageID: " + ecs_im.getId()
 
+asgroup = AutoScaleGroup.AutoScaleGroups()
+asgroup.printall()
+#asgroup.create('selperf_asg','launch_config_m3')
+#asgroup.printall()
+#asgroup.delete('selperf_auto_scaling')
+#asgroup.printall()
+asgroup.setCapacity('selperf_asg',0)
+asgroup.printall()
 
-autoscale = boto3.client('autoscaling',  region_name='us-east-1')
-response = autoscale.describe_auto_scaling_groups()
-print "***************AutoScalingGroups***************"
-if len(response['AutoScalingGroups'])==0:
-    print "AutoScalingGroups are empty"
-else:
-    print response
+# autoscale = boto3.client('autoscaling',  region_name='us-east-1')
+# response = autoscale.describe_auto_scaling_groups()
+# print "***************AutoScalingGroups***************"
+# if len(response['AutoScalingGroups'])==0:
+#     print "AutoScalingGroups are empty"
+# else:
+#     print response
 
-# launchConf = LaunchConf.LaunchConfig('us-east-1')
+#launchConf = LaunchConf.LaunchConfig('us-east-1')
 # launchConf.printall()
-# launchConf.create('eugene_launch_config_create')
+#launchConf.create('eugene-selperf', "t2.medium")
+#launchConf.create('launch_config_m3', "m3.medium")
 # launchConf.printall()
 # launchConf.delete('eugene_launch_config_create')
 # launchConf.printall()
@@ -58,13 +68,15 @@ else:
 #     Attribute='enableDnsSupport',
 # )
 
-response = autoscale.create_auto_scaling_group(
-    AutoScalingGroupName='eugene-auto-scaling',
-    LaunchConfigurationName='eugene-selperf',
-    MaxSize=1,
-    MinSize=0,
-    VPCZoneIdentifier=EC2VPC.VPC('vpc-ff34d39a').getFirst()
-)
+
+
+# response = autoscale.create_auto_scaling_group(
+#     AutoScalingGroupName='selperf_auto_scaling',
+#     LaunchConfigurationName='launch_config_m3',
+#     MaxSize=1,
+#     MinSize=0,
+#     VPCZoneIdentifier=EC2VPC.VPC('vpc-ff34d39a').getFirst()
+# )
 
 
 #    print "AutoScalingGroups are empty"

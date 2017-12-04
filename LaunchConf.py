@@ -1,4 +1,5 @@
 import boto3
+from  botocore.exceptions import ClientError
 import ECSImages
 
 class Configuration():
@@ -24,16 +25,17 @@ class LaunchConfig():
     Configurations = []
     __region = ""
     __autoscale = None
+    __response = ""
 
     def __init__(self, region='us-east-1'):
-        self.__autoscale = boto3.client('autoscaling',  region_name=region)
+        self.__response = self.__autoscale = boto3.client('autoscaling',  region_name=region)
         self.__region=region
         self.get_all()
 
     def get_all (self):
-        response = self.__autoscale.describe_launch_configurations()
-        if len(response['LaunchConfigurations'])!=0:
-            for lc in response['LaunchConfigurations']:
+        self.__response = self.__autoscale.describe_launch_configurations()
+        if len(self.__response['LaunchConfigurations'])!=0:
+            for lc in self.__response['LaunchConfigurations']:
                 conf = Configuration()
                 conf.Name = lc['LaunchConfigurationName']
                 conf.InstanceType = lc["InstanceType"]
@@ -49,7 +51,8 @@ class LaunchConfig():
 
     def printall(self):
         if self.isEmpty():
-            print
+            print "Found NO Launch Configurations"
+            return
 
         print "*************************************"
         print "we have "+str(len(self.Configurations))+" Configurations"
@@ -65,24 +68,29 @@ class LaunchConfig():
 
     def isEmpty(self):
         if len(self.Configurations):
-            return True
-        return False
+            return False
+        return True
 
     def getImage(self):
         return ECSImages.ecsImages(self.__region).getImage()
 
-    def create(self, name):
-        self.__autoscale.create_launch_configuration(
-            IamInstanceProfile='eugene-ecs-selperf-role',
-            ImageId=self.getImage(),
-            KeyName = 'ApachePerf',
-            InstanceType='t2.medium',
-            InstanceMonitoring = {'Enabled' : False},
-            LaunchConfigurationName=name,
-            SecurityGroups=[
-                'sg-f7655184',
-            ],
-        )
+    def create(self, name, instType):
+        try:
+            self.__response=self.__autoscale.create_launch_configuration(
+                IamInstanceProfile='eugene-ecs-selperf-role',
+                ImageId=self.getImage(),
+                KeyName = 'ApachePerf',
+                InstanceType=instType,
+                InstanceMonitoring = {'Enabled' : False},
+                LaunchConfigurationName=name,
+                SecurityGroups=[
+                    'sg-f7655184',
+                ],
+            )
+        except ClientError as ce:
+            if ce.response['Error']['Code'] == 'AlreadyExists':
+                raise ValueError("A launch configuration already exists with the name "+ name)
+
         self.refresh()
 
     def delete(self, name):
@@ -95,3 +103,6 @@ class LaunchConfig():
         """Refresh the instances info"""
         self.Configurations=[]
         self.get_all()
+
+    def getLastResponse(self):
+        return self.__response
