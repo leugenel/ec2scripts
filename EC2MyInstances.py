@@ -8,11 +8,6 @@ class ec2MyInstances ():
 
     instances = []
 
-    def __init__(self):
-        """Initialize an instance array"""
-        self.get_all_instances()
-
-
     def refresh(self):
         """Refresh the instances info"""
         self.instances=[]

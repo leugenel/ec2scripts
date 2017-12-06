@@ -2,6 +2,7 @@ import boto3
 from  botocore.exceptions import ClientError
 import ECSImages
 
+
 class Configuration():
     Name = ""
     InstanceType = ""

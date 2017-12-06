@@ -37,46 +37,26 @@ asgroup.printall()
 #asgroup.printall()
 #asgroup.delete('selperf_auto_scaling')
 #asgroup.printall()
-asgroup.setCapacity('selperf_asg',0)
-asgroup.printall()
 
-# autoscale = boto3.client('autoscaling',  region_name='us-east-1')
-# response = autoscale.describe_auto_scaling_groups()
-# print "***************AutoScalingGroups***************"
-# if len(response['AutoScalingGroups'])==0:
-#     print "AutoScalingGroups are empty"
-# else:
-#     print response
+try:
+    asgroup.setCapacity('selperf_asg',1)
+except ValueError:
+    print asgroup.getLastResponse()
 
-#launchConf = LaunchConf.LaunchConfig('us-east-1')
-# launchConf.printall()
-#launchConf.create('eugene-selperf', "t2.medium")
-#launchConf.create('launch_config_m3', "m3.medium")
-# launchConf.printall()
-# launchConf.delete('eugene_launch_config_create')
-# launchConf.printall()
+response = asgroup.getLastResponse()
 
+# for g in response['AutoScalingGroups']:
+#     if len(g['Instances'])!=0:
+#         for i in g['Instances']:
+#             print i['InstanceId']
 
+#print "========After Capacity update=========="
+#asgroup.printall()
 
-#subnet = EC2VPC.VPC('vpc-ff34d39a')
-# while not subnet.isLast():
-#     print subnet.getNext()
+#TO DO
+#Add Instances to AutoScale group
 
 
-#
-# response = vpc.describe_attribute(
-#     Attribute='enableDnsSupport',
-# )
-
-
-
-# response = autoscale.create_auto_scaling_group(
-#     AutoScalingGroupName='selperf_auto_scaling',
-#     LaunchConfigurationName='launch_config_m3',
-#     MaxSize=1,
-#     MinSize=0,
-#     VPCZoneIdentifier=EC2VPC.VPC('vpc-ff34d39a').getFirst()
-# )
 
 
 #    print "AutoScalingGroups are empty"

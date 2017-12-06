@@ -21,6 +21,7 @@ def main():
         return
 
     machines = EC2MyInstances.ec2MyInstances()
+    machines.get_all_instances()
 
     #If no argument will print info about all instances
     if not args.action and not args.name:

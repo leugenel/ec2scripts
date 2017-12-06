@@ -1,6 +1,8 @@
 import boto3
+import time
 from  botocore.exceptions import ClientError
 import EC2VPC
+import EC2Instance
 
 class AutoScaleGroup():
     GroupName = ""
@@ -31,20 +33,21 @@ class AutoScaleGroups():
     __region = ""
 
     def __init__(self, region='us-east-1'):
-        self.__response=self.__autoscale = boto3.client('autoscaling', region)
+        self.__autoscale = boto3.client('autoscaling', region)
         self.__region = region
         self.get_all()
 
 
     def get_all (self):
-        response = self.__autoscale.describe_auto_scaling_groups()
-        if len(response['AutoScalingGroups'])!=0:
-            for g in response['AutoScalingGroups']:
+        self.__response = self.__autoscale.describe_auto_scaling_groups()
+        if len(self.__response['AutoScalingGroups'])!=0:
+            for g in self.__response['AutoScalingGroups']:
                 asg = AutoScaleGroup()
                 asg.GroupName  = g['AutoScalingGroupName']
                 asg.LaunchConfName = g["LaunchConfigurationName"]
                 asg.MaxSize = g['MaxSize']
                 asg.MinSize = g['MinSize']
+                asg.DesiredCapacity = g['DesiredCapacity']
                 self.asGroups.append(asg)
 
     def printall(self):
@@ -103,12 +106,28 @@ class AutoScaleGroups():
         self.refresh()
 
     def setCapacity(self, name, capacity):
-        self.__response=self.__autoscale.set_desired_capacity(
-            AutoScalingGroupName=name,
-            DesiredCapacity=capacity
-        )
+        try:
+            self.__autoscale.set_desired_capacity(
+                AutoScalingGroupName=name,
+                DesiredCapacity=capacity
+            )
+        except ClientError as ce:
+            if ce.response['Error']['Code'] == 'ValidationError':
+                raise ValueError("The Auto Scale Group with "+ name+ " doesn't exist!" )
+
+        #prepare array of instances
+        self.refresh()
+        for g in self.__response['AutoScalingGroups']:
+            if len(g['Instances'])!=0:
+                for i in g['Instances']:
+                    instanceId = i['InstanceId']
+                    instance = EC2Instance.ec2Instance()
+                    instance.setInstancebyId(instanceId)
+                    #instance.printme()
+
         #update our data
-        self.asGroups[self.getIndex(name)].DesiredCapacity=capacity
+        #self.asGroups[self.getIndex(name)].DesiredCapacity=capacity
 
     def getLastResponse(self):
         return self.__response
+
