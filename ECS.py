@@ -3,6 +3,7 @@ import ECSImages
 import LaunchConf
 import EC2VPC
 import AutoScaleGroup
+import EC2MyInstances
 
 cluster_name = 'eugene-ecs-selperf'
 ecs_client = boto3.client(
@@ -39,11 +40,19 @@ asgroup.printall()
 #asgroup.printall()
 
 try:
-    asgroup.setCapacity('selperf_asg',1)
+    asgroup.setCapacity('selperf_asg',0)
 except ValueError:
     print asgroup.getLastResponse()
 
-response = asgroup.getLastResponse()
+#asgroup.tag('selperf_asg')
+
+perf_machines = EC2MyInstances.ec2MyInstances()
+
+perf_machines.get_region_instances_by_tag('us-east-1', 'SelfPerf')
+
+perf_machines.printall()
+
+#response = asgroup.getLastResponse()
 
 # for g in response['AutoScalingGroups']:
 #     if len(g['Instances'])!=0:

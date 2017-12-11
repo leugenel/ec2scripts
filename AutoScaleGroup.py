@@ -2,7 +2,7 @@ import boto3
 import time
 from  botocore.exceptions import ClientError
 import EC2VPC
-import EC2Instance
+import EC2MyInstances
 
 class AutoScaleGroup():
     GroupName = ""
@@ -91,6 +91,7 @@ class AutoScaleGroups():
             if ce.response['Error']['Code'] == 'AlreadyExists':
                 raise ValueError("Auto Scale Group already exists with the name "+ name)
 
+        self.tag(name)
         self.refresh()
 
 
@@ -115,15 +116,7 @@ class AutoScaleGroups():
             if ce.response['Error']['Code'] == 'ValidationError':
                 raise ValueError("The Auto Scale Group with "+ name+ " doesn't exist!" )
 
-        #prepare array of instances
         self.refresh()
-        for g in self.__response['AutoScalingGroups']:
-            if len(g['Instances'])!=0:
-                for i in g['Instances']:
-                    instanceId = i['InstanceId']
-                    instance = EC2Instance.ec2Instance()
-                    instance.setInstancebyId(instanceId)
-                    #instance.printme()
 
         #update our data
         #self.asGroups[self.getIndex(name)].DesiredCapacity=capacity
@@ -131,3 +124,15 @@ class AutoScaleGroups():
     def getLastResponse(self):
         return self.__response
 
+    def tag(self, name):
+        self.__autoscale.create_or_update_tags(
+            Tags=[
+                {
+                    'ResourceId': name,
+                    'ResourceType': 'auto-scaling-group',
+                    'Key': 'Product',
+                    'Value': 'SelfPerf',
+                    'PropagateAtLaunch': True
+                }
+            ]
+        )

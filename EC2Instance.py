@@ -57,15 +57,3 @@ class ec2Instance ():
                         self.State = i["State"]["Name"]
                         self.PublicDns = i['PublicDnsName']
 
-    def setInstancebyId(self, Id):
-        ec2 = boto3.resource('ec2')
-        instance = ec2.Instance(Id)
-        self.ID = Id
-        response = instance.tags
-        for i in response:
-            if i['Key']=='Name':
-                self.Name = i['Value']
-                print self.Name
-                break
-        #print response
-        #self.Name =

@@ -18,6 +18,23 @@ class ec2MyInstances ():
         """Get info about instances in the specific region"""
         ec2 = boto3.client('ec2', region_name=region)
         response = ec2.describe_instances()
+        self.add_instances(region, response)
+
+
+    def get_region_instances_by_tag(self, region, tag):
+        """Get info about instances in the specific region"""
+        ec2 = boto3.client('ec2', region_name=region)
+        response = ec2.describe_instances(
+            Filters=[
+                {
+                    'Name': 'tag-value',
+                    'Values':[tag]
+                }
+            ]
+        )
+        self.add_instances(region, response)
+
+    def add_instances(self, region, response):
         for r in response['Reservations']:
             for i in r['Instances']:
                 inst = EC2Instance.ec2Instance()
@@ -26,9 +43,9 @@ class ec2MyInstances ():
                 inst.State = i["State"]["Name"]
                 inst.PublicDns = i['PublicDnsName']
                 for t in i["Tags"]:
-                    inst.Name = t["Value"]
+                    if t['Key']=='Name':
+                        inst.Name = t["Value"]
                 self.instances.append(inst)
-
 
     def get_all_instances(self):
         """Get info about instances in all regions"""
