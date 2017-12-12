@@ -22,7 +22,6 @@ class ec2MyInstances ():
 
 
     def get_region_instances_by_tag(self, region, tag):
-        """Get info about instances in the specific region"""
         ec2 = boto3.client('ec2', region_name=region)
         response = ec2.describe_instances(
             Filters=[

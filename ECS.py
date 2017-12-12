@@ -32,23 +32,28 @@ print "**************ECS Images in us-east-1****************"
 print "Image name: "+ecs_im.getName()
 print "ImageID: " + ecs_im.getId()
 
-asgroup = AutoScaleGroup.AutoScaleGroups()
-asgroup.printall()
+asgroups = AutoScaleGroup.AutoScaleGroups()
+asgroups.printall()
 #asgroup.create('selperf_asg','launch_config_m3')
 #asgroup.printall()
 #asgroup.delete('selperf_auto_scaling')
 #asgroup.printall()
 
-try:
-    asgroup.setCapacity('selperf_asg',0)
-except ValueError:
-    print asgroup.getLastResponse()
+as_my_group = AutoScaleGroup.AutoScaleGroup('selperf_asg', 'us-east-1')
 
-#asgroup.tag('selperf_asg')
+capacity = 0
+try:
+    as_my_group.setCapacity(capacity)
+except ValueError:
+    print as_my_group.getLastResponse()
+
+as_my_group.tag()
+
+as_my_group.wait4Capacity(capacity)
 
 perf_machines = EC2MyInstances.ec2MyInstances()
 
-perf_machines.get_region_instances_by_tag('us-east-1', 'SelfPerf')
+perf_machines.get_region_instances_by_tag('us-east-1', 'SelPerf')
 
 perf_machines.printall()
 

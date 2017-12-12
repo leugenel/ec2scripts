@@ -10,12 +10,76 @@ class AutoScaleGroup():
     DesiredCapacity = 0
     MaxSize = 1
     MinSize = 0
+    region = ""
+    perf_tag = 'SelPerf'
+    __autoscale = None
     __response = ""
 
     def find (self, name):
         if self.GroupName == name:
             return True
         return False
+
+    def __init__(self, name, region='us-east-1'):
+        self.__autoscale = boto3.client('autoscaling', region)
+        self.region = region
+        self.GroupName = name
+
+    def create(self, name, configuration):
+        self.GroupName = name
+        self.LaunchConfName = configuration
+        try:
+            self.__response=self.__autoscale.create_auto_scaling_group(
+                AutoScalingGroupName=self.GroupName,
+                LaunchConfigurationName=self.LaunchConfName,
+                MaxSize=self.MaxSize,
+                MinSize=self.MinSize,
+                VPCZoneIdentifier=EC2VPC.VPC('vpc-ff34d39a').getFirst()
+            )
+        except ClientError as ce:
+            if ce.response['Error']['Code'] == 'AlreadyExists':
+                raise ValueError("Auto Scale Group already exists with the name "+ name)
+
+        self.tag()
+
+    def delete(self):
+        self.__autoscale.delete_auto_scaling_group(
+            AutoScalingGroupName = self.GroupName,
+        )
+
+    def setCapacity(self, capacity):
+        try:
+            self.__autoscale.set_desired_capacity(
+                AutoScalingGroupName=self.GroupName,
+                DesiredCapacity=capacity
+            )
+        except ClientError as ce:
+            if ce.response['Error']['Code'] == 'ValidationError':
+                raise ValueError("The Auto Scale Group with "+ self.GroupName+ " doesn't exist!" )
+
+    def wait4Capacity(self, capacity):
+        new_machines = EC2MyInstances.ec2MyInstances()
+        for i in range(1,15):
+            new_machines.get_region_instances_by_tag(self.region, self.perf_tag)
+            if len(new_machines.instances) >= capacity:
+                break
+            time.sleep(4)
+
+    def tag(self):
+        self.__autoscale.create_or_update_tags(
+            Tags=[
+                {
+                    'ResourceId': self.GroupName,
+                    'ResourceType': 'auto-scaling-group',
+                    'Key': 'Product',
+                    'Value': self.perf_tag,
+                    'PropagateAtLaunch': True
+                }
+            ]
+        )
+
+    def getLastResponse(self):
+        return self.__response
 
     def printme(self):
         print "**************Auto Scale Group Info****************"
@@ -26,11 +90,15 @@ class AutoScaleGroup():
         print "DesiredCapacity: "+ str(self.DesiredCapacity)
         print "**************End Auto Scale Group Info****************"
 
+
+######################### class AutoScaleGroups #########################################
+
 class AutoScaleGroups():
 
     asGroups = []
     __autoscale = None
     __region = ""
+    __response = ""
 
     def __init__(self, region='us-east-1'):
         self.__autoscale = boto3.client('autoscaling', region)
@@ -42,8 +110,8 @@ class AutoScaleGroups():
         self.__response = self.__autoscale.describe_auto_scaling_groups()
         if len(self.__response['AutoScalingGroups'])!=0:
             for g in self.__response['AutoScalingGroups']:
-                asg = AutoScaleGroup()
-                asg.GroupName  = g['AutoScalingGroupName']
+                asg = AutoScaleGroup(g['AutoScalingGroupName'], self.__region)
+                #asg.GroupName  = g['AutoScalingGroupName']
                 asg.LaunchConfName = g["LaunchConfigurationName"]
                 asg.MaxSize = g['MaxSize']
                 asg.MinSize = g['MinSize']
@@ -78,61 +146,11 @@ class AutoScaleGroups():
                 return indx
         return -1
 
-    def create(self, name, configuration):
-        try:
-            self.__response=self.__autoscale.create_auto_scaling_group(
-                AutoScalingGroupName=name,
-                LaunchConfigurationName=configuration,
-                MaxSize=1,
-                MinSize=0,
-                VPCZoneIdentifier=EC2VPC.VPC('vpc-ff34d39a').getFirst()
-            )
-        except ClientError as ce:
-            if ce.response['Error']['Code'] == 'AlreadyExists':
-                raise ValueError("Auto Scale Group already exists with the name "+ name)
-
-        self.tag(name)
-        self.refresh()
-
 
     def refresh(self):
         """Refresh the instances info"""
         self.asGroups=[]
         self.get_all()
 
-    def delete(self, name):
-        self.__autoscale.delete_auto_scaling_group(
-            AutoScalingGroupName = name,
-        )
-        self.refresh()
-
-    def setCapacity(self, name, capacity):
-        try:
-            self.__autoscale.set_desired_capacity(
-                AutoScalingGroupName=name,
-                DesiredCapacity=capacity
-            )
-        except ClientError as ce:
-            if ce.response['Error']['Code'] == 'ValidationError':
-                raise ValueError("The Auto Scale Group with "+ name+ " doesn't exist!" )
-
-        self.refresh()
-
-        #update our data
-        #self.asGroups[self.getIndex(name)].DesiredCapacity=capacity
-
     def getLastResponse(self):
         return self.__response
-
-    def tag(self, name):
-        self.__autoscale.create_or_update_tags(
-            Tags=[
-                {
-                    'ResourceId': name,
-                    'ResourceType': 'auto-scaling-group',
-                    'Key': 'Product',
-                    'Value': 'SelfPerf',
-                    'PropagateAtLaunch': True
-                }
-            ]
-        )
