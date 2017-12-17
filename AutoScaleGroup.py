@@ -15,15 +15,15 @@ class AutoScaleGroup():
     __autoscale = None
     __response = ""
 
-    def find (self, name):
-        if self.GroupName == name:
-            return True
-        return False
-
     def __init__(self, name, region='us-east-1'):
         self.__autoscale = boto3.client('autoscaling', region)
         self.region = region
         self.GroupName = name
+
+    def find (self, name):
+        if self.GroupName == name:
+            return True
+        return False
 
     def create(self, name, configuration):
         self.GroupName = name

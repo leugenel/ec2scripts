@@ -4,27 +4,30 @@ import LaunchConf
 import EC2VPC
 import AutoScaleGroup
 import EC2MyInstances
+import ECSClusters
 
-cluster_name = 'eugene-ecs-selperf'
-ecs_client = boto3.client(
-    'ecs',
-     region_name='us-east-1'
-)
+# cluster_name = 'eugene-ecs-selperf'
+# ecs_client = boto3.client(
+#     'ecs',
+#      region_name='us-east-1'
+# )
+#
+# print "**************Clusters****************"
+#
+# response = ecs_client.describe_clusters(
+#     clusters=[cluster_name]
+# )
+#
+# print "Cluster name: " + cluster_name
+# for clusters in response['clusters']:
+#     print "status: "+ clusters['status']
+#     print "Container Instance Count: "+ str(clusters['registeredContainerInstancesCount'])
+#     print "Pending Tasks: "+ str(clusters['pendingTasksCount'])
+#     print "Running Tasks: "+ str(clusters['runningTasksCount'])
+#     print "Active Services Count: "+ str(clusters['activeServicesCount'])
 
-print "**************Clusters****************"
-
-response = ecs_client.describe_clusters(
-    clusters=[cluster_name]
-)
-
-print "Cluster name: " + cluster_name
-for clusters in response['clusters']:
-    print "status: "+ clusters['status']
-    print "Container Instance Count: "+ str(clusters['registeredContainerInstancesCount'])
-    print "Pending Tasks: "+ str(clusters['pendingTasksCount'])
-    print "Running Tasks: "+ str(clusters['runningTasksCount'])
-    print "Active Services Count: "+ str(clusters['activeServicesCount'])
-
+clusters = ECSClusters.Clusters()
+clusters.printall()
 
 ec2 = boto3.client('ec2')  #, region_name='us-east-1')
 ecs_im = ECSImages.ecsImages('us-east-1')
@@ -69,7 +72,6 @@ perf_machines.printall()
 
 #TO DO
 #Add Instances to AutoScale group
-
 
 
 

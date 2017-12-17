@@ -87,6 +87,8 @@ class LaunchConfig():
                 SecurityGroups=[
                     'sg-f7655184',
                 ],
+                UserData = "#!/bin/bash "
+                           "echo ECS_CLUSTER=eugene-ecs-selperf >> /etc/ecs/ecs.config"
             )
         except ClientError as ce:
             if ce.response['Error']['Code'] == 'AlreadyExists':
