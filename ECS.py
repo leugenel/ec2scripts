@@ -6,6 +6,40 @@ import AutoScaleGroup
 import EC2MyInstances
 import ECSClusters
 
+
+#Scenario and Action Items
+#We assume that nothing not ready and verify if exists something
+#0. Region - currently we are in N.Virginia - us-east-1
+#1. ECS Cluster.
+# We have to clusters default and eugene-ecs-selperf
+# AI: the test currently works with default we need configure EC2 launch configuration User Data in the way (already in the code)
+# that will work with the eugene-ecs-selperf cluster.
+# We need verify that the cluster eugene-ecs-selperf exists
+#2. Launch configuration
+# AI: Need create the new one that will work with the predefined cluster
+# Then verify that this launch configuration exists
+#3. Auto Scaling Group
+# AI: Need create one with LC from #2
+# Then verify that the ASG is exists
+# Need set the desired capacity to 1 at least for one machine
+#4. Task definition.
+# AI: Create class that will aloows to create the required task definition.
+#Currently we have selperf:3 that was verifyied manually
+#The most important thing this is memory = 500 MiB
+#5. Cluster Task. This will launch the required docker
+# AI: Create Class
+#6. AI: Need divide the main file to two files
+# One configuration that goes to all configuration and check that the configuration is ok
+# Nedd think about the property file that includes all required names
+#Second launch file that changes the capacity and launch the task
+#7. AI: Need find the mechanism for the passing parameters to the docker
+
+
+
+
+
+
+
 # cluster_name = 'eugene-ecs-selperf'
 # ecs_client = boto3.client(
 #     'ecs',
